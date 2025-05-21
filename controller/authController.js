@@ -2,6 +2,8 @@ const {User, validateLogIn, validateRegister } = require('../model/User');
 const bcrypt = require('bcryptjs');
 const Jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
+const BlacklistedToken = require('../model/blacklistedToken');
+
 module.exports.Register = asyncHandler(async(req,res)=>{
     try{
         const {error} = validateRegister(req.body);
@@ -35,27 +37,23 @@ module.exports.LogIn = asyncHandler(async(req,res)=>{
         res.status(200).json(user)
     }catch(err){res.status(500).json(err)}
 })
+
 module.exports.LogOut = asyncHandler(async (req, res) => {
     try {
-      const authHeader = req.headers.authorization;
-  
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Access denied. No token provided.' });
-      }
-  
-      const token = authHeader.split(' ')[1];
-      const decoded = Jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.id);
-  
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-  
-      user.token = null;
-      await user.save();
-  
-      res.status(200).json({ message: 'Logged out successfully' });
-    } catch (err) {
-      res.status(500).json({ message: 'Something went wrong', error: err.message });
+        const token = req.header('Authorization')?.replace('Bearer ', '');
+        
+        if (!token) {
+            return res.status(400).json({ message: 'لم يتم تقديم توكن' });
+        }
+
+        // إضافة التوكن إلى القائمة السوداء
+        await BlacklistedToken.create({ token });
+
+        // حذف التوكن من المستخدم
+        await User.findByIdAndUpdate(req.user.id, { token: null });
+
+        res.json({ message: 'تم تسجيل الخروج بنجاح' });
+    } catch (error) {
+        res.status(500).json({ message: 'حدث خطأ في تسجيل الخروج', error: error.message });
     }
-  });
+});
