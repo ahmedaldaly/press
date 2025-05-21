@@ -4,10 +4,14 @@
   "description": "منصة صحفية تتيح للصحفيين نشر المحتوى والتفاعل مع القراء",
   "main": "src/index.js",
   "scripts": {
-    "start": "nodemon index.js",
+     "start": "node index.js",
     "dev": "nodemon index.js",
     "lint": "eslint .",
     "test": "jest"
+  },
+  "author": "",
+  "engines": {
+    "node": "22.14.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.7",
