@@ -11,7 +11,9 @@ app.use(cors({
     credentials:true,
 }));
 ConnectDB()
-
+app.get('/',(req , res)=>{
+    res.status(200).json({message:'server is running'})
+})
 app.use(express.json());
 app.use('/api/auth',require('./routes/auth'))
 app.use('/api/user',require('./routes/user'))
